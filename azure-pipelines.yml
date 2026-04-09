@@ -26,14 +26,10 @@ stages:
         azureSubscription: 'azure-service-connection'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
+        addSpnToEnvironment: true
         inlineScript: |
-          terraform init \
-            -backend-config="resource_group_name=terraform-mgmt-rg" \
-            -backend-config="storage_account_name=tfstatesharedsa" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=dev.terraform.tfstate"
-          
-          terraform plan -var-file="environments/dev.tfvars" -out=tfplan
+          terraform init -backend-config="environments/dev/dev.backend"
+          terraform plan -var-file="environments/dev/dev.tfvars" -var="s3_key=app/deploy-v$(Build.BuildNumber).zip"
 
 - stage: TerraformApply
   displayName: 'Terraform Apply'
@@ -59,11 +55,7 @@ stages:
               azureSubscription: 'azure-service-connection'
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
+              addSpnToEnvironment: true
               inlineScript: |
-                terraform init \
-                  -backend-config="resource_group_name=terraform-mgmt-rg" \
-                  -backend-config="storage_account_name=tfstatesharedsa" \
-                  -backend-config="container_name=tfstate" \
-                  -backend-config="key=dev.terraform.tfstate"
-                
-                terraform apply -var-file="environments/dev.tfvars" -auto-approve
+                terraform init -backend-config="environments/dev/dev.backend"
+                terraform apply -var-file="environments/dev/dev.tfvars" -var="s3_key=app/deploy-v$(Build.BuildNumber).zip" -auto-approve
