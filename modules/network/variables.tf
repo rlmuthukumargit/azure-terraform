@@ -13,6 +13,16 @@ variable "environment" {
   type        = string
 }
 
+variable "rg_prefix" {
+  description = "Prefix for the Resource Group name."
+  type        = string
+}
+
+variable "rg_suffix" {
+  description = "Suffix for the Resource Group name."
+  type        = string
+}
+
 variable "vnet_address_space" {
   description = "Address space for the virtual network."
   type        = list(string)

@@ -1,5 +1,5 @@
 data "azurerm_resource_group" "main" {
-  name = "${var.project_name}-${var.environment}-rg"
+  name = "${var.rg_prefix}rg${var.rg_suffix}"
 }
 
 resource "azurerm_synapse_workspace" "main" {

@@ -13,6 +13,16 @@ variable "environment" {
   type        = string
 }
 
+variable "rg_prefix" {
+  description = "Prefix for the Resource Group name."
+  type        = string
+}
+
+variable "rg_suffix" {
+  description = "Suffix for the Resource Group name."
+  type        = string
+}
+
 variable "subnet_id" {
   description = "ID of the subnet where the private endpoint will be created."
   type        = string

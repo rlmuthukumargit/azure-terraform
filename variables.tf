@@ -23,6 +23,18 @@ variable "location_short" {
   type        = string
 }
 
+variable "rg_prefix" {
+  description = "Prefix for the Resource Group name."
+  type        = string
+  default     = ""
+}
+
+variable "rg_suffix" {
+  description = "Suffix for the Resource Group name."
+  type        = string
+  default     = ""
+}
+
 variable "vnet_address_space" {
   description = "Address space for the virtual network."
   type        = list(string)
