@@ -1,7 +1,11 @@
+data "azurerm_resource_group" "main" {
+  name = "${var.project_name}-${var.environment}-rg"
+}
+
 resource "azurerm_storage_account" "main" {
   name                     = "${var.project_name}${var.environment}stg"
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
+  resource_group_name      = data.azurerm_resource_group.main.name
+  location                 = data.azurerm_resource_group.main.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   is_hns_enabled           = true
@@ -18,8 +22,8 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "main" {
 
 resource "azurerm_private_endpoint" "storage" {
   name                = "${var.project_name}-${var.environment}-pe"
-  location            = var.location
-  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main.location
+  resource_group_name = data.azurerm_resource_group.main.name
   subnet_id           = var.subnet_id
 
   lifecycle {

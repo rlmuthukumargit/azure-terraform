@@ -11,8 +11,6 @@ resource "azurerm_resource_group" "main" {
 module "network" {
   source = "./modules/network"
 
-  resource_group_name     = azurerm_resource_group.main.name
-  location                = azurerm_resource_group.main.location
   location_short          = var.location_short
   project_name            = var.project_name
   environment             = var.environment
@@ -23,8 +21,6 @@ module "network" {
 module "storage" {
   source = "./modules/storage"
 
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
   location_short      = var.location_short
   project_name        = var.project_name
   environment         = var.environment
@@ -34,8 +30,6 @@ module "storage" {
 module "synapse" {
   source = "./modules/synapse"
 
-  resource_group_name                  = azurerm_resource_group.main.name
-  location                             = azurerm_resource_group.main.location
   location_short                       = var.location_short
   project_name                         = var.project_name
   environment                          = var.environment
