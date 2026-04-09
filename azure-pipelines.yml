@@ -20,24 +20,20 @@ stages:
       inputs:
         terraformVersion: 'latest'
 
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Init'
+    - task: AzureCLI@2
+      displayName: 'Terraform Init & Plan'
       inputs:
-        provider: 'azurerm'
-        command: 'init'
-        backendServiceArm: 'azure-service-connection'
-        backendAzureRmResourceGroupName: 'terraform-mgmt-rg'
-        backendAzureRmStorageAccountName: 'tfstatesharedsa'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'dev.terraform.tfstate'
-
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Plan'
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        environmentServiceNameAzureRM: 'azure-service-connection'
-        commandOptions: '-var-file="environments/dev.tfvars"'
+        azureSubscription: 'azure-service-connection'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          terraform init \
+            -backend-config="resource_group_name=terraform-mgmt-rg" \
+            -backend-config="storage_account_name=tfstatesharedsa" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="key=dev.terraform.tfstate"
+          
+          terraform plan -var-file="environments/dev.tfvars" -out=tfplan
 
 - stage: TerraformApply
   displayName: 'Terraform Apply'
@@ -46,7 +42,7 @@ stages:
   jobs:
   - deployment: Apply
     displayName: 'Apply changes'
-    environment: 'dev' # Use DevOps Environment for approval gates
+    environment: 'dev'
     strategy:
       runOnce:
         deploy:
@@ -57,21 +53,17 @@ stages:
             inputs:
               terraformVersion: 'latest'
 
-          - task: TerraformTaskV4@4
-            displayName: 'Terraform Init'
+          - task: AzureCLI@2
+            displayName: 'Terraform Init & Apply'
             inputs:
-              provider: 'azurerm'
-              command: 'init'
-              backendServiceArm: 'azure-service-connection'
-              backendAzureRmResourceGroupName: 'terraform-mgmt-rg'
-              backendAzureRmStorageAccountName: 'tfstatesharedsa'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'dev.terraform.tfstate'
-
-          - task: TerraformTaskV4@4
-            displayName: 'Terraform Apply'
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              environmentServiceNameAzureRM: 'azure-service-connection'
-              commandOptions: '-var-file="environments/dev.tfvars" -auto-approve'
+              azureSubscription: 'azure-service-connection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                terraform init \
+                  -backend-config="resource_group_name=terraform-mgmt-rg" \
+                  -backend-config="storage_account_name=tfstatesharedsa" \
+                  -backend-config="container_name=tfstate" \
+                  -backend-config="key=dev.terraform.tfstate"
+                
+                terraform apply -var-file="environments/dev.tfvars" -auto-approve
