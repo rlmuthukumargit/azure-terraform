@@ -1,0 +1,4 @@
+resource_group_name  = "terraform-mgmt-rg" # Replace with your storage account RG
+storage_account_name = "tfstatesharedsa"   # Replace with your storage account name
+container_name       = "tfstate"
+key                  = "dev.terraform.tfstate"

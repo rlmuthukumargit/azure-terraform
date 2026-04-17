@@ -1,0 +1,114 @@
+parameters:
+- name: environment
+  displayName: 'Environment'
+  type: string
+  default: 'dev'
+  values:
+  - dev
+  - qa
+  - prod
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- group: terraform-secrets # Variable Group containing SYNAPSE_ADMIN_PASSWORD
+- name: TF_VAR_synapse_admin_password
+  value: $(SYNAPSE_ADMIN_PASSWORD)
+- name: azureSubscription
+  value: 'ws-salestax-dev01' # Update this to your service connection name
+- name: terraformVersion
+  value: '1.9.0' # Pinned version for stability
+
+stages:
+- stage: Terraform_Plan
+  displayName: 'Terraform Plan'
+  jobs:
+  - job: Plan
+    displayName: 'Plan changes'
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: $(terraformVersion)
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Init & Plan'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        addSpnToEnvironment: true
+        inlineScript: |
+          set -e
+          echo "Initializing Terraform for environment: ${{ parameters.environment }}"
+          terraform init -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
+          
+          echo "Generating Terraform Plan..."
+          terraform plan -var-file="environments/${{ parameters.environment }}/${{ parameters.environment }}.tfvars" \
+            -out=tfplan
+    
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Terraform Plan'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/tfplan'
+        artifact: 'tfplan-${{ parameters.environment }}'
+        publishLocation: 'pipeline'
+
+- stage: Approval
+  displayName: 'Manual Approval'
+  dependsOn: Terraform_Plan
+  condition: succeeded()
+  jobs:
+  - job: Approve
+    displayName: 'Approval Job'
+    pool: server # Required for manual intervention tasks
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440 # 24 hours
+      inputs:
+        notifyUsers: |
+          your-email@example.com
+        instructions: 'Please review the Terraform plan for ${{ parameters.environment }} and approve to apply.'
+
+- stage: Terraform_Apply
+  displayName: 'Terraform Apply'
+  dependsOn: Approval
+  condition: succeeded()
+  jobs:
+  - deployment: Apply
+    displayName: 'Apply changes'
+    environment: '${{ parameters.environment }}'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Terraform Plan'
+            inputs:
+              buildType: 'current'
+              artifactName: 'tfplan-${{ parameters.environment }}'
+              targetPath: '$(System.DefaultWorkingDirectory)'
+
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: $(terraformVersion)
+
+          - task: AzureCLI@2
+            displayName: 'Terraform Init & Apply'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              addSpnToEnvironment: true
+              inlineScript: |
+                set -e
+                echo "Initializing Terraform for environment: ${{ parameters.environment }}"
+                terraform init -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
+                
+                echo "Applying Terraform Plan..."
+                terraform apply -auto-approve tfplan
