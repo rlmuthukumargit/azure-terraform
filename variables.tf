@@ -56,6 +56,11 @@ variable "storage_container_name" {
   type        = string
 }
 
+variable "subscription_id" {
+  description = "Azure Subscription ID"
+  type        = string
+}
+
 variable "tags" {
   description = "Tags"
   type        = map(string)
