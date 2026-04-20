@@ -1,9 +1,3 @@
-resource "random_password" "sql_pw" {
-  length           = 16
-  special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
-}
-
 resource "azurerm_synapse_workspace" "syn" {
   name                                 = "syn-${var.project}-${var.environment}-${var.sequence}-${var.region_code}"
   resource_group_name                  = var.resource_group_name
@@ -11,7 +5,7 @@ resource "azurerm_synapse_workspace" "syn" {
   managed_resource_group_name          = "rg-managed-${var.project}-${var.environment}-${var.sequence}-${var.region_code}"
   storage_data_lake_gen2_filesystem_id = var.storage_data_lake_gen2_filesystem_id
   sql_administrator_login              = var.sql_administrator_login
-  sql_administrator_login_password     = random_password.sql_pw.result
+  sql_administrator_login_password     = var.sql_administrator_login_password
 
   managed_virtual_network_enabled = true
   public_network_access_enabled   = false

@@ -15,6 +15,9 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
+- group: terraform-secrets # Variable Group containing SYNAPSE_ADMIN_PASSWORD
+- name: TF_VAR_sql_password
+  value: $(SYNAPSE_ADMIN_PASSWORD)
 - name: azureSubscription
   value: 'ws-salestax-dev01' # Update this to your service connection name
 - name: terraformVersion
