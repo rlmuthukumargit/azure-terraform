@@ -61,6 +61,11 @@ variable "tags" {
   default     = {}
 }
 
+variable "storage_container_path" {
+  description = "The path to the storage container for vulnerability assessments"
+  type        = string
+}
+
 variable "subnet_id" {
   description = "Subnet ID for Synapse Private Endpoints"
   type        = string

@@ -55,7 +55,7 @@ resource "azurerm_synapse_workspace_security_alert_policy" "alert" {
 
 resource "azurerm_synapse_workspace_vulnerability_assessment" "va" {
   workspace_security_alert_policy_id = azurerm_synapse_workspace_security_alert_policy.alert.id
-  storage_container_path             = "" # To be filled if needed
+  storage_container_path             = var.storage_container_path
   # recurring_scans {}
 }
 

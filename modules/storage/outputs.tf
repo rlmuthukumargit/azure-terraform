@@ -10,6 +10,10 @@ output "primary_dfs_endpoint" {
   value = azurerm_storage_account.st.primary_dfs_endpoint
 }
 
+output "primary_blob_endpoint" {
+  value = azurerm_storage_account.st.primary_blob_endpoint
+}
+
 output "container_name" {
   value = azurerm_storage_container.container.name
 }
