@@ -30,7 +30,6 @@ module "storage" {
   sequence             = var.sequence
   region_code          = var.region_code
   subnet_id            = module.network.pe_subnet_id
-  container_name       = var.storage_container_name
   private_dns_zone_ids = var.private_dns_zone_ids
   tags                 = var.tags
 }

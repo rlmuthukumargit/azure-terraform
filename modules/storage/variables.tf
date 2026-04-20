@@ -33,11 +33,6 @@ variable "subnet_id" {
   type        = string
 }
 
-variable "container_name" {
-  description = "Storage container name"
-  type        = string
-}
-
 variable "private_dns_zone_ids" {
   description = "Private DNS Zone IDs for the Private Endpoint"
   type        = list(string)

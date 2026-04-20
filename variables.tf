@@ -46,11 +46,6 @@ variable "private_dns_zone_ids" {
   default     = []
 }
 
-variable "storage_container_name" {
-  description = "Name of the storage container"
-  type        = string
-}
-
 variable "subscription_id" {
   description = "Azure Subscription ID"
   type        = string
