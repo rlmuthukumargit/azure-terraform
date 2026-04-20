@@ -13,11 +13,3 @@ resource "azurerm_subnet" "pe_snet" {
   address_prefixes                              = var.pe_subnet_prefix
   private_link_service_network_policies_enabled = true
 }
-
-resource "azurerm_subnet" "synapse_snet" {
-  name                                          = "snet-syn-${var.project}-${var.environment}-${var.sequence}-${var.region_code}"
-  resource_group_name                           = var.resource_group_name
-  virtual_network_name                          = azurerm_virtual_network.vnet.name
-  address_prefixes                              = var.synapse_subnet_prefix
-  private_link_service_network_policies_enabled = true
-}

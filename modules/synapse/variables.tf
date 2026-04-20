@@ -55,17 +55,6 @@ variable "restricted_ips" {
   default = []
 }
 
-variable "subnet_id" {
-  description = "Subnet ID for Synapse Private Endpoints"
-  type        = string
-}
-
-variable "private_dns_zone_ids" {
-  description = "Private DNS Zone IDs"
-  type        = list(string)
-  default     = []
-}
-
 variable "tags" {
   description = "Tags"
   type        = map(string)

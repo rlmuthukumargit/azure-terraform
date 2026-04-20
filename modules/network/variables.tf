@@ -38,11 +38,6 @@ variable "pe_subnet_prefix" {
   type        = list(string)
 }
 
-variable "synapse_subnet_prefix" {
-  description = "Address prefix for the Synapse subnet"
-  type        = list(string)
-}
-
 variable "tags" {
   description = "Tags"
   type        = map(string)

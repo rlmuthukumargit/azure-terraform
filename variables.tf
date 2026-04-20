@@ -40,11 +40,6 @@ variable "pe_subnet_prefix" {
   type        = list(string)
 }
 
-variable "synapse_subnet_prefix" {
-  description = "Address prefix for the Synapse subnet"
-  type        = list(string)
-}
-
 variable "private_dns_zone_ids" {
   description = "List of Private DNS Zone IDs"
   type        = list(string)
