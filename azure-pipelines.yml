@@ -1,0 +1,137 @@
+parameters:
+- name: environment
+  displayName: 'Environment'
+  type: string
+  default: 'dev'
+  values:
+  - dev
+  - qa
+  - prod
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- name: azureSubscription
+  value: 'ws-salestax-dev01' # Update this to your service connection name
+- name: terraformVersion
+  value: '1.9.0'
+
+stages:
+- stage: Terraform_Plan
+  displayName: 'Terraform Plan'
+  jobs:
+  - job: Plan
+    displayName: 'Plan changes'
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: $(terraformVersion)
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Init'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        addSpnToEnvironment: true
+        inlineScript: |
+          set -e
+          echo "Initializing Terraform for environment: ${{ parameters.environment }}"
+          terraform init -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
+
+    - bash: |
+        set -e
+        echo "Validating Terraform configuration..."
+        terraform validate
+      displayName: 'Terraform Validate'
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Plan'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        addSpnToEnvironment: true
+        inlineScript: |
+          set -e
+          echo "Generating Terraform Plan..."
+          terraform plan -var-file="environments/${{ parameters.environment }}/${{ parameters.environment }}.tfvars" \
+            -out=tfplan
+    
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Terraform Plan'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/tfplan'
+        artifact: 'tfplan-${{ parameters.environment }}'
+        publishLocation: 'pipeline'
+
+- stage: Approval
+  displayName: 'Manual Approval'
+  dependsOn: Terraform_Plan
+  # Optional: Only require approval for production
+  # condition: and(succeeded(), eq('${{ parameters.environment }}', 'prod'))
+  condition: succeeded()
+  jobs:
+  - job: Approve
+    displayName: 'Approval Job'
+    pool: server 
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440
+      inputs:
+        notifyUsers: |
+          your-email@example.com
+        instructions: 'Please review the Terraform plan for ${{ parameters.environment }} and approve to apply.'
+
+- stage: Terraform_Apply
+  displayName: 'Terraform Apply'
+  dependsOn: Approval
+  condition: succeeded()
+  jobs:
+  - deployment: Apply
+    displayName: 'Apply changes'
+    environment: '${{ parameters.environment }}'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Terraform Plan'
+            inputs:
+              buildType: 'current'
+              artifactName: 'tfplan-${{ parameters.environment }}'
+              targetPath: '$(System.DefaultWorkingDirectory)'
+
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: $(terraformVersion)
+
+          - task: AzureCLI@2
+            displayName: 'Terraform Init'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              addSpnToEnvironment: true
+              inlineScript: |
+                set -e
+                echo "Initializing Terraform for environment: ${{ parameters.environment }}"
+                terraform init -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
+
+          - task: AzureCLI@2
+            displayName: 'Terraform Apply'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              addSpnToEnvironment: true
+              inlineScript: |
+                set -e
+                echo "Applying Terraform Plan..."
+                terraform apply -auto-approve tfplan
