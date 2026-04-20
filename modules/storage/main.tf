@@ -1,5 +1,5 @@
 resource "azurerm_storage_account" "st" {
-  name                     = "st${var.project}syn${var.environment}${var.sequence}${var.region_code}" # simplified but follows pattern
+  name                     = "st${var.project}${var.environment}${var.sequence}${var.region_code}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
