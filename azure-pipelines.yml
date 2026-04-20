@@ -35,7 +35,7 @@ stages:
         terraformVersion: $(terraformVersion)
 
     - task: AzureCLI@2
-      displayName: 'Terraform Init & Plan'
+      displayName: 'Terraform Init'
       inputs:
         azureSubscription: $(azureSubscription)
         scriptType: 'bash'
@@ -45,7 +45,22 @@ stages:
           set -e
           echo "Initializing Terraform for environment: ${{ parameters.environment }}"
           terraform init -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
-          
+
+    - bash: |
+        set -e
+        echo "Validating Terraform configuration..."
+        terraform validate
+      displayName: 'Terraform Validate'
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Plan'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        addSpnToEnvironment: true
+        inlineScript: |
+          set -e
           echo "Generating Terraform Plan..."
           terraform plan -var-file="environments/${{ parameters.environment }}/${{ parameters.environment }}.tfvars" \
             -out=tfplan
@@ -99,7 +114,7 @@ stages:
               terraformVersion: $(terraformVersion)
 
           - task: AzureCLI@2
-            displayName: 'Terraform Init & Apply'
+            displayName: 'Terraform Init'
             inputs:
               azureSubscription: $(azureSubscription)
               scriptType: 'bash'
@@ -109,6 +124,15 @@ stages:
                 set -e
                 echo "Initializing Terraform for environment: ${{ parameters.environment }}"
                 terraform init -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
-                
+
+          - task: AzureCLI@2
+            displayName: 'Terraform Apply'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              addSpnToEnvironment: true
+              inlineScript: |
+                set -e
                 echo "Applying Terraform Plan..."
                 terraform apply -auto-approve tfplan

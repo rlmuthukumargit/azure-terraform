@@ -23,16 +23,10 @@ variable "location_short" {
   type        = string
 }
 
-variable "rg_prefix" {
-  description = "Prefix for the Resource Group name."
+variable "instance_number" {
+  description = "Instance number for the resource group (e.g., 01, 02)."
   type        = string
-  default     = ""
-}
-
-variable "rg_suffix" {
-  description = "Suffix for the Resource Group name."
-  type        = string
-  default     = ""
+  default     = "01"
 }
 
 variable "vnet_address_space" {

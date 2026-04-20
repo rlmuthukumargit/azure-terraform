@@ -23,15 +23,6 @@ variable "environment" {
   type        = string
 }
 
-variable "rg_prefix" {
-  description = "Prefix for the Resource Group name."
-  type        = string
-}
-
-variable "rg_suffix" {
-  description = "Suffix for the Resource Group name."
-  type        = string
-}
 
 variable "storage_data_lake_gen2_filesystem_id" {
   description = "ID of the Data Lake Gen2 filesystem for Synapse."
