@@ -45,5 +45,7 @@ module "synapse" {
   region_code                          = var.region_code
   storage_data_lake_gen2_filesystem_id = "${module.storage.primary_dfs_endpoint}${module.storage.container_name}"
   allow_all_firewall                   = var.allow_all_firewall
+  subnet_id                            = module.network.pe_subnet_id
+  private_dns_zone_ids                 = var.private_dns_zone_ids
   tags                                 = var.tags
 }
