@@ -1,0 +1,19 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude sensitive vars
+*.tfvars
+# (Optional: If you want to keep env-specific vars in git but exclude dynamic ones)
+# !environments/**/*.tfvars
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
