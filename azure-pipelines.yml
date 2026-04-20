@@ -10,6 +10,7 @@ parameters:
 
 trigger:
 - main
+- qa
 
 pool:
   vmImage: 'ubuntu-latest'
