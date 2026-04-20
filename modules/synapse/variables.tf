@@ -62,8 +62,9 @@ variable "tags" {
 }
 
 variable "storage_container_path" {
-  description = "The path to the storage container for vulnerability assessments"
+  description = "The path of Container"
   type        = string
+  default     = ""
 }
 
 variable "subnet_id" {

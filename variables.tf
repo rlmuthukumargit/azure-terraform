@@ -46,11 +46,6 @@ variable "private_dns_zone_ids" {
   default     = []
 }
 
-variable "subscription_id" {
-  description = "Azure Subscription ID"
-  type        = string
-}
-
 variable "tags" {
   description = "Tags"
   type        = map(string)

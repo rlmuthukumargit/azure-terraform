@@ -6,7 +6,6 @@ region_code           = "eus"
 vnet_address_space    = ["172.21.20.0/24"]
 pe_subnet_prefix      = ["172.21.20.0/27"]
 allow_all_firewall      = true
-subscription_id         = "" # From image
 tags = {
   Environment    = "dev"
   promotion_tier = "dev"
