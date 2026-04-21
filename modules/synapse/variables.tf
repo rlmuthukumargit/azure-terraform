@@ -36,7 +36,6 @@ variable "storage_data_lake_gen2_filesystem_id" {
 variable "sql_administrator_login" {
   description = "SQL administrator login"
   type        = string
-  default     = "sqladminuser"
 }
 
 variable "allow_all_firewall" {

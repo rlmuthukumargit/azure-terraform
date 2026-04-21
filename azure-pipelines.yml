@@ -48,6 +48,7 @@ stages:
         inlineScript: |
           set -e
           export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
+          export TF_VAR_sql_administrator_login=$(SQL_ADMIN_USERNAME)
           
           terraform init \
             -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
@@ -95,6 +96,7 @@ stages:
         inlineScript: |
           set -e
           export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
+          export TF_VAR_sql_administrator_login=$(SQL_ADMIN_USERNAME)
           
           terraform init \
             -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
