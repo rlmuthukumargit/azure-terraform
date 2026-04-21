@@ -24,11 +24,11 @@ variable "region_code" {
   type        = string
 }
 
-variable "allow_all_firewall" {
-  description = "Whether to allow all traffic to Synapse"
-  type        = bool
-  default     = false
-}
+# variable "allow_all_firewall" {
+#   description = "Whether to allow all traffic to Synapse"
+#   type        = bool
+#   default     = false
+# }
 
 variable "vnet_address_space" {
   description = "Address space for the VNet"
