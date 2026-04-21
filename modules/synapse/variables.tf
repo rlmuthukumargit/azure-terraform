@@ -77,3 +77,13 @@ variable "private_dns_zone_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "storage_account_id" {
+  description = "The ID of the primary storage account for role assignments"
+  type        = string
+}
+
+variable "storage_account_blob_endpoint" {
+  description = "The Blob endpoint of the storage account for auditing"
+  type        = string
+}

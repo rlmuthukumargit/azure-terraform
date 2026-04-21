@@ -34,18 +34,25 @@ resource "azurerm_synapse_firewall_rule" "restricted" {
   end_ip_address       = each.value.end_ip_address
 }
 
+# Permissions
+resource "azurerm_role_assignment" "syn_storage_access" {
+  scope                = var.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_synapse_workspace.syn.identity[0].principal_id
+}
+
 # Additional Resources from Images
 resource "azurerm_synapse_workspace_extended_auditing_policy" "audit" {
   synapse_workspace_id   = azurerm_synapse_workspace.syn.id
+  storage_endpoint       = var.storage_account_blob_endpoint
   log_monitoring_enabled = false
   retention_in_days      = 0
+
+  depends_on = [azurerm_role_assignment.syn_storage_access]
 }
 
-resource "azurerm_synapse_integration_runtime_azure" "ir" {
-  name                 = "AutoResolveIntegrationRuntime"
-  synapse_workspace_id = azurerm_synapse_workspace.syn.id
-  location             = "AutoResolve"
-}
+# AutoResolveIntegrationRuntime is created by default by Azure. 
+# Attempting to manage it specifically via Terraform names often causes conflicts.
 
 resource "azurerm_synapse_workspace_security_alert_policy" "alert" {
   synapse_workspace_id = azurerm_synapse_workspace.syn.id
@@ -57,6 +64,8 @@ resource "azurerm_synapse_workspace_vulnerability_assessment" "va" {
   workspace_security_alert_policy_id = azurerm_synapse_workspace_security_alert_policy.alert.id
   storage_container_path             = var.storage_container_path
   # recurring_scans {}
+
+  depends_on = [azurerm_role_assignment.syn_storage_access]
 }
 
 # Private Endpoints for Synapse
