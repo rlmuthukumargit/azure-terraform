@@ -17,22 +17,22 @@ resource "azurerm_synapse_workspace" "syn" {
   tags = var.tags
 }
 
-# Firewall Rules
-resource "azurerm_synapse_firewall_rule" "allow_all" {
-  count                = var.allow_all_firewall ? 1 : 0
-  name                 = "allowAll"
-  synapse_workspace_id = azurerm_synapse_workspace.syn.id
-  start_ip_address     = "0.0.0.0"
-  end_ip_address       = "255.255.255.255"
-}
+# Firewall Rules (Commented out as Public Access is Disabled and using Private Endpoints)
+# resource "azurerm_synapse_firewall_rule" "allow_all" {
+#   count                = var.allow_all_firewall ? 1 : 0
+#   name                 = "allowAll"
+#   synapse_workspace_id = azurerm_synapse_workspace.syn.id
+#   start_ip_address     = "0.0.0.0"
+#   end_ip_address       = "255.255.255.255"
+# }
 
-resource "azurerm_synapse_firewall_rule" "restricted" {
-  for_each             = { for x in var.restricted_ips : x.name => x if !var.allow_all_firewall }
-  name                 = each.value.name
-  synapse_workspace_id = azurerm_synapse_workspace.syn.id
-  start_ip_address     = each.value.start_ip_address
-  end_ip_address       = each.value.end_ip_address
-}
+# resource "azurerm_synapse_firewall_rule" "restricted" {
+#   for_each             = { for x in var.restricted_ips : x.name => x if !var.allow_all_firewall }
+#   name                 = each.value.name
+#   synapse_workspace_id = azurerm_synapse_workspace.syn.id
+#   start_ip_address     = each.value.start_ip_address
+#   end_ip_address       = each.value.end_ip_address
+# }
 
 # Permissions
 resource "azurerm_role_assignment" "syn_storage_access" {
