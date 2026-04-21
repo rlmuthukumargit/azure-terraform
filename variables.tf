@@ -41,7 +41,7 @@ variable "pe_subnet_prefix" {
 }
 
 variable "private_dns_zone_ids" {
-  description = "List of Private DNS Zone IDs"
+  description = "Private DNS Zone IDs"
   type        = list(string)
   default     = []
 }
