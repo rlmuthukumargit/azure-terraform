@@ -47,7 +47,7 @@ module "synapse" {
   storage_account_id                   = module.storage.id
   storage_account_blob_endpoint        = module.storage.primary_blob_endpoint
   sql_administrator_login_password     = var.sql_password
-  allow_all_firewall                   = var.allow_all_firewall
+  # allow_all_firewall                   = var.allow_all_firewall
   subnet_id                            = module.network.pe_subnet_id
   private_dns_zone_ids                 = var.private_dns_zone_ids
   tags                                 = var.tags
