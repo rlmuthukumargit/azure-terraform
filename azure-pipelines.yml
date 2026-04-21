@@ -58,6 +58,7 @@ jobs:
         set -e
         export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
         terraform plan \
+          -lock-timeout=120s \
           -var-file="environments/${{ parameters.environment }}/${{ parameters.environment }}.tfvars" \
           -out=tfplan
 
@@ -71,4 +72,4 @@ jobs:
       inlineScript: |
         set -e
         export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
-        terraform apply -auto-approve tfplan
+        terraform apply -lock-timeout=120s -auto-approve tfplan
