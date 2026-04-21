@@ -71,38 +71,34 @@ stages:
   dependsOn: Plan
   condition: succeeded()
   jobs:
-  - deployment: Apply
+  - job: Apply
     displayName: 'Apply changes'
-    environment: '${{ parameters.environment }}'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - checkout: self
+    steps:
+    - checkout: self
 
-          - download: current
-            artifact: $(planFileName)
-            displayName: 'Download Terraform Plan'
+    - download: current
+      artifact: $(planFileName)
+      displayName: 'Download Terraform Plan'
 
-          - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
-            displayName: 'Install Terraform'
-            inputs:
-              terraformVersion: $(terraformVersion)
+    - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+      displayName: 'Install Terraform'
+      inputs:
+        terraformVersion: $(terraformVersion)
 
-          - task: AzureCLI@2
-            displayName: 'Terraform Apply'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              addSpnToEnvironment: true
-              inlineScript: |
-                set -e
-                export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
-                
-                terraform init \
-                  -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
-                
-                terraform apply \
-                  -lock-timeout=120s \
-                  -auto-approve $(Pipeline.Workspace)/$(planFileName)/$(planFileName)
+    - task: AzureCLI@2
+      displayName: 'Terraform Apply'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        addSpnToEnvironment: true
+        inlineScript: |
+          set -e
+          export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
+          
+          terraform init \
+            -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
+          
+          terraform apply \
+            -lock-timeout=120s \
+            -auto-approve $(Pipeline.Workspace)/$(planFileName)/$(planFileName)
