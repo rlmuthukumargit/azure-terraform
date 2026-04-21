@@ -20,116 +20,55 @@ variables:
 - name: azureSubscription
   value: 'tss_d365_devops_dev_01'        # Service Connection Name from your image
 - name: terraformVersion
-  value: '1.9.0'                         # Current stable version
+  value: '1.9.0'
 
-stages:
-- stage: Terraform_Plan
-  displayName: 'Terraform Plan'
-  jobs:
-  - job: Plan
-    displayName: 'Plan changes'
-    steps:
-    - checkout: self
+jobs:
+- job: Terraform_Deployment
+  displayName: 'Terraform Step-by-Step'
+  steps:
+  - checkout: self
 
-    - bash: |
-        sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
-        wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
-        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-        sudo apt-get update && sudo apt-get install terraform=$(terraformVersion)
-      displayName: 'Install Terraform $(terraformVersion)'
+  - bash: |
+      sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+      wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+      echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+      sudo apt-get update && sudo apt-get install terraform=$(terraformVersion)
+    displayName: 'Install Terraform $(terraformVersion)'
 
-    - task: AzureCLI@2
-      displayName: 'Terraform Init & Plan'
-      inputs:
-        azureSubscription: $(azureSubscription)
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        addSpnToEnvironment: true
-        inlineScript: |
-          set -e
-          
-          # Map Sensitive Variables to Terraform
-          export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
-          
-          echo "Initializing Terraform for environment: ${{ parameters.environment }}"
-          terraform init \
-            -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
-          
-          echo "Validating Configuration..."
-          terraform validate
-          
-          echo "Generating Plan..."
-          terraform plan \
-            -var-file="environments/${{ parameters.environment }}/${{ parameters.environment }}.tfvars" \
-            -out=tfplan
-      
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Terraform Plan'
-      inputs:
-        targetPath: '$(System.DefaultWorkingDirectory)/tfplan'
-        artifact: 'tfplan-${{ parameters.environment }}'
-        publishLocation: 'pipeline'
+  - task: AzureCLI@2
+    displayName: 'Terraform Init'
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      addSpnToEnvironment: true
+      inlineScript: |
+        set -e
+        terraform init \
+          -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
+    
+  - task: AzureCLI@2
+    displayName: 'Terraform Plan'
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      addSpnToEnvironment: true
+      inlineScript: |
+        set -e
+        export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
+        terraform plan \
+          -var-file="environments/${{ parameters.environment }}/${{ parameters.environment }}.tfvars" \
+          -out=tfplan
 
-- stage: Approval
-  displayName: 'Manual Approval'
-  dependsOn: Terraform_Plan
-  condition: succeeded()
-  jobs:
-  - job: Approve
-    displayName: 'Approval Job'
-    pool: server 
-    steps:
-    - task: ManualValidation@0
-      timeoutInMinutes: 1440
-      inputs:
-        notifyUsers: |
-          # Add your email here
-        instructions: 'Please review the Terraform plan for ${{ parameters.environment }} and approve to apply.'
-
-- stage: Terraform_Apply
-  displayName: 'Terraform Apply'
-  dependsOn: Approval
-  condition: succeeded()
-  jobs:
-  - deployment: Apply
-    displayName: 'Apply changes'
-    environment: '${{ parameters.environment }}'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - checkout: self
-
-          - task: DownloadPipelineArtifact@2
-            displayName: 'Download Terraform Plan'
-            inputs:
-              buildType: 'current'
-              artifactName: 'tfplan-${{ parameters.environment }}'
-              targetPath: '$(System.DefaultWorkingDirectory)'
-
-          - bash: |
-              sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
-              wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
-              echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-              sudo apt-get update && sudo apt-get install terraform=$(terraformVersion)
-            displayName: 'Install Terraform $(terraformVersion)'
-
-          - task: AzureCLI@2
-            displayName: 'Terraform Apply'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              addSpnToEnvironment: true
-              inlineScript: |
-                set -e
-                
-                # Map Sensitive Variables to Terraform
-                export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
-                
-                echo "Initializing for Apply..."
-                terraform init \
-                  -backend-config="environments/${{ parameters.environment }}/${{ parameters.environment }}.backend"
-                
-                echo "Applying Terraform Plan..."
-                terraform apply -auto-approve tfplan
+  - task: AzureCLI@2
+    displayName: 'Terraform Apply'
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      addSpnToEnvironment: true
+      inlineScript: |
+        set -e
+        export TF_VAR_sql_password=$(SYNAPSE_ADMIN_PASSWORD)
+        terraform apply -auto-approve tfplan
